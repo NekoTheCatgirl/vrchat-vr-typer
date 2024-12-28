@@ -10,6 +10,7 @@ use std::{
 use crate::text_utils::split_into_chunks;
 
 #[derive(Debug)]
+#[allow(unused)]
 pub enum Message {
     Text {
         content: String,
