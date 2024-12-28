@@ -4,7 +4,9 @@ use std::{
 };
 
 use iced::{
-    widget::{center, checkbox, column, row, text_input}, Alignment, Element, Size, Task
+    widget::{button, center, checkbox, column, row, text, text_input},
+    Alignment::{self, Center},
+    Element, Size, Task,
 };
 
 use crate::{osc::Message, shared_data::SharedData};
@@ -12,7 +14,11 @@ use crate::{osc::Message, shared_data::SharedData};
 /// Entry point for the user interface, takes the message queue
 pub fn render_ui(queue: Arc<Mutex<VecDeque<Message>>>, data: Arc<SharedData>) {
     iced::application("Vrchat Typer", VrchatTyper::update, VrchatTyper::view)
-        .window(iced::window::Settings { size: Size::new(500.0, 90.0), ..Default::default() })
+        .window(iced::window::Settings {
+            size: Size::new(500.0, 150.0),
+            ..Default::default()
+        })
+        .resizable(false)
         .run_with(|| VrchatTyper::new(queue, data))
         .expect("Unable to create UI");
 }
@@ -21,6 +27,7 @@ pub fn render_ui(queue: Arc<Mutex<VecDeque<Message>>>, data: Arc<SharedData>) {
 struct VrchatTyper {
     queue: Arc<Mutex<VecDeque<Message>>>,
     data: Arc<SharedData>,
+    message_delay: u64,
     input_value: String,
     sending_state: bool,
     notify_state: bool,
@@ -35,6 +42,7 @@ impl VrchatTyper {
             Self {
                 queue,
                 data,
+                message_delay: 3,
                 ..Default::default()
             },
             Task::none(),
@@ -77,6 +85,20 @@ impl VrchatTyper {
             }
             ApplicationMessage::SendingToggled(send) => self.sending_state = send,
             ApplicationMessage::NotifyToggled(notify) => self.notify_state = notify,
+            ApplicationMessage::Increment => {
+                self.message_delay += 1;
+                if self.message_delay > 20 {
+                    self.message_delay = 20;
+                }
+                self.data.message_delay.store(self.message_delay, Ordering::SeqCst);
+            }
+            ApplicationMessage::Decrement => {
+                self.message_delay -= 1;
+                if self.message_delay < 3 {
+                    self.message_delay = 3;
+                }
+                self.data.message_delay.store(self.message_delay, Ordering::SeqCst);
+            }
         }
     }
 
@@ -91,10 +113,18 @@ impl VrchatTyper {
         let notify =
             checkbox("Notify", self.notify_state).on_toggle(ApplicationMessage::NotifyToggled);
 
+        let counter = row![
+            button("Increase Delay").on_press(ApplicationMessage::Increment),
+            text(self.message_delay).size(20),
+            button("Lower Delay").on_press(ApplicationMessage::Decrement)
+        ]
+        .padding(20)
+        .align_y(Center);
+
         let toggles_row = row![sending, notify].spacing(20);
 
-        let content = column![input, toggles_row]
-            .spacing(20)
+        let content = column![input, toggles_row, counter]
+            .spacing(10)
             .align_x(Alignment::Center);
 
         center(content).into()
@@ -107,4 +137,6 @@ enum ApplicationMessage {
     InputChanged(String),
     SendingToggled(bool),
     NotifyToggled(bool),
+    Increment,
+    Decrement,
 }
