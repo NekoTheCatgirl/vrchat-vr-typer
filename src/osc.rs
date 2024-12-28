@@ -22,9 +22,9 @@ pub enum Message {
     Typing(bool),
 }
 
-pub fn hook_sender_thread(queue: Arc<Mutex<VecDeque<Message>>>, data: Arc<SharedData>) {
-    let vrchat_ip = "127.0.0.1";
-    let vrchat_port = 9000;
+pub fn hook_sender_thread(queue: Arc<Mutex<VecDeque<Message>>>, data: Arc<SharedData>, ip: &str, port: u16) {
+    let vrchat_ip = ip;
+    let vrchat_port = port;
 
     let socket = UdpSocket::bind("0.0.0.0:0").expect("Unable to bind socket");
     socket
@@ -72,7 +72,9 @@ pub fn hook_sender_thread(queue: Arc<Mutex<VecDeque<Message>>>, data: Arc<Shared
 
                         println!("Sent message: \"{chunk}\"");
 
-                        sleep(Duration::from_secs(data.message_delay.load(Ordering::SeqCst)));
+                        if immediate == true {
+                            sleep(Duration::from_secs(data.message_delay.load(Ordering::SeqCst)));
+                        }
                     }
                     
                     data.is_sending.store(false, Ordering::SeqCst);
