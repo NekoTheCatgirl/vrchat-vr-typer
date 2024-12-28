@@ -17,3 +17,6 @@ If you are running vrchat on a different machine or on a quest, follow these ins
 1. Ensure that you have [OSC enabled in vrchat](https://docs.vrchat.com/docs/osc-overview#enabling-it)
 2. Get the IP of the device running vrchat
 3. Run the application with the argument `--ip "<ip>"`
+
+## Running on a non windows machine
+As this was compiled only on windows, you will have to compile it yourself on your machine you want to run it on. Simply use cargo to build the application `cargo build --release`
