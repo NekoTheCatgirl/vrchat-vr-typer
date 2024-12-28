@@ -7,3 +7,13 @@ The main reason i made this was because i was enjoying a good activity where you
 I noticed aswell that vrchat would only recognize the physical keyboards input if i had the steamvr menu up, making my hand tracking data not transmit to vrchat.
 
 "There are this and that already" My answer is, i like learning ^^ And thus i made something that let me both learn, and have fun at the same time. While also solving my problem.
+
+## How to use
+If you are running the application on the same machine that vrchat is running on, follow these instructions:
+1. Ensure that you have [OSC enabled in vrchat](https://docs.vrchat.com/docs/osc-overview#enabling-it)
+2. Launch the application (it auto connects)
+
+If you are running vrchat on a different machine or on a quest, follow these instructions:
+1. Ensure that you have [OSC enabled in vrchat](https://docs.vrchat.com/docs/osc-overview#enabling-it)
+2. Get the IP of the device running vrchat
+3. Run the application with the argument `--ip "<ip>"`
