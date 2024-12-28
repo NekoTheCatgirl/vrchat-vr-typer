@@ -1,6 +1,10 @@
 # Vrchat VR typer
 A auto splitting typing utility for vrchat users who want to use hand tracking while also being able to use their physical keyboard to text their friends (usefull for mutes who know how to touch type)
 
+A showcase of the utility:
+
+[![Watch the video](https://img.youtube.com/vi/vZdKnperEWQ/0.jpg)](https://www.youtube.com/watch?v=vZdKnperEWQ)
+
 ## Why was this made?
 The main reason i made this was because i was enjoying a good activity where you answer questions in a circle. And being a mute in vrchat, i found it hard to answer the questions propperly, thus i want a way to type easier, especially when i am not using any controllers.
 
