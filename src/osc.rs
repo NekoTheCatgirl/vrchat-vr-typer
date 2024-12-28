@@ -1,5 +1,6 @@
 use rosc::{encoder, OscMessage, OscPacket};
 use std::collections::VecDeque;
+use std::sync::atomic::Ordering;
 use std::{
     net::UdpSocket,
     sync::{Arc, Mutex},
@@ -7,6 +8,7 @@ use std::{
     time::Duration,
 };
 
+use crate::shared_data::SharedData;
 use crate::text_utils::split_into_chunks;
 
 #[derive(Debug)]
@@ -20,7 +22,7 @@ pub enum Message {
     Typing(bool),
 }
 
-pub fn hook_sender_thread(queue: &Arc<Mutex<VecDeque<Message>>>) {
+pub fn hook_sender_thread(queue: Arc<Mutex<VecDeque<Message>>>, data: Arc<SharedData>) {
     let vrchat_ip = "127.0.0.1";
     let vrchat_port = 9000;
 
@@ -41,6 +43,7 @@ pub fn hook_sender_thread(queue: &Arc<Mutex<VecDeque<Message>>>) {
                     immediate,
                     notify,
                 } => {
+                    data.is_sending.store(true, Ordering::SeqCst);
                     // Split the input into chunks (max 144 characters, split by words)
                     let chunks = split_into_chunks(&content, 144);
 
@@ -69,8 +72,10 @@ pub fn hook_sender_thread(queue: &Arc<Mutex<VecDeque<Message>>>) {
 
                         println!("Sent message: \"{chunk}\"");
 
-                        sleep(Duration::from_secs(3));
+                        sleep(Duration::from_secs(data.message_delay.load(Ordering::SeqCst)));
                     }
+                    
+                    data.is_sending.store(false, Ordering::SeqCst);
                 }
                 Message::Typing(on) => {
                     let osc_message = OscMessage {
