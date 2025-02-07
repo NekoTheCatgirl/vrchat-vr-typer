@@ -4,15 +4,14 @@ use std::{
 };
 
 use iced::{
-    widget::{button, center, checkbox, column, row, text, text_input},
-    Alignment::{self, Center},
-    Element, Size, Task,
+    widget::{button, center, checkbox, column, row, text, text_input, Space}, Alignment::{self, Center}, Element, Length::Fill, Size, Task
 };
 
-use crate::{osc::Message, shared_data::SharedData};
+use crate::{osc::Message, shared_data::SharedData, text_utils::split_into_chunks};
 
 /// Entry point for the user interface, takes the message queue
 pub fn render_ui(queue: Arc<Mutex<VecDeque<Message>>>, data: Arc<SharedData>) {
+    data.message_delay.store(15, Ordering::SeqCst);
     iced::application("Vrchat Typer", VrchatTyper::update, VrchatTyper::view)
         .window(iced::window::Settings {
             size: Size::new(500.0, 150.0),
@@ -29,7 +28,6 @@ struct VrchatTyper {
     data: Arc<SharedData>,
     message_delay: u64,
     input_value: String,
-    sending_state: bool,
     notify_state: bool,
 }
 
@@ -42,7 +40,7 @@ impl VrchatTyper {
             Self {
                 queue,
                 data,
-                message_delay: 3,
+                message_delay: 15,
                 ..Default::default()
             },
             Task::none(),
@@ -71,33 +69,25 @@ impl VrchatTyper {
                     queue.push_back(Message::Typing(true));
                 }
                 self.input_value = text;
-
-                if self.sending_state == true && self.input_value.len() < 140 {
-                    {
-                        let mut queue = self.queue.lock().unwrap();
-                        queue.push_back(Message::Text {
-                            content: self.input_value.clone(),
-                            immediate: false,
-                            notify: self.notify_state,
-                        });
-                    }
-                }
             }
-            ApplicationMessage::SendingToggled(send) => self.sending_state = send,
             ApplicationMessage::NotifyToggled(notify) => self.notify_state = notify,
             ApplicationMessage::Increment => {
                 self.message_delay += 1;
                 if self.message_delay > 20 {
                     self.message_delay = 20;
                 }
-                self.data.message_delay.store(self.message_delay, Ordering::SeqCst);
+                self.data
+                    .message_delay
+                    .store(self.message_delay, Ordering::SeqCst);
             }
             ApplicationMessage::Decrement => {
                 self.message_delay -= 1;
                 if self.message_delay < 3 {
                     self.message_delay = 3;
                 }
-                self.data.message_delay.store(self.message_delay, Ordering::SeqCst);
+                self.data
+                    .message_delay
+                    .store(self.message_delay, Ordering::SeqCst);
             }
         }
     }
@@ -108,20 +98,30 @@ impl VrchatTyper {
             .on_submit(ApplicationMessage::InputSent)
             .padding(10);
 
-        let sending = checkbox("Send while typing", self.sending_state)
-            .on_toggle(ApplicationMessage::SendingToggled);
+        let char_count = text(format!("{} characters", self.input_value.len()));
         let notify =
             checkbox("Notify", self.notify_state).on_toggle(ApplicationMessage::NotifyToggled);
+        let split_count = text(format!(
+            "Will send {} messages",
+            if self.input_value.len() > 0 {
+                split_into_chunks(&self.input_value, 134).len()
+            } else {
+                0
+            }
+        ));
 
         let counter = row![
             button("Increase Delay").on_press(ApplicationMessage::Increment),
+            Space::new(Fill, 0),
             text(self.message_delay).size(20),
+            Space::new(Fill, 0),
             button("Lower Delay").on_press(ApplicationMessage::Decrement)
         ]
         .padding(20)
         .align_y(Center);
 
-        let toggles_row = row![sending, notify].spacing(20);
+        let toggles_row = row![char_count, notify, split_count].spacing(20);
+
 
         let content = column![input, toggles_row, counter]
             .spacing(10)
@@ -135,7 +135,6 @@ impl VrchatTyper {
 enum ApplicationMessage {
     InputSent,
     InputChanged(String),
-    SendingToggled(bool),
     NotifyToggled(bool),
     Increment,
     Decrement,

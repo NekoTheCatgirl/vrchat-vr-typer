@@ -45,7 +45,7 @@ pub fn hook_sender_thread(queue: Arc<Mutex<VecDeque<Message>>>, data: Arc<Shared
                 } => {
                     data.is_sending.store(true, Ordering::SeqCst);
                     // Split the input into chunks (max 144 characters, split by words)
-                    let chunks = split_into_chunks(&content, 144);
+                    let chunks = split_into_chunks(&content, 134);
 
                     // Send each chunk as an OSC message
                     for chunk in chunks {
