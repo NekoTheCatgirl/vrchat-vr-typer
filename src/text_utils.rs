@@ -6,7 +6,7 @@ pub fn split_into_chunks(text: &str, max_length: usize) -> Vec<String> {
         // Split the input by words
         let words = text.split_whitespace();
     
-        let index = 1;
+        let mut index = 1;
     
         for word in words {
             // Check if adding the next word would exceed the max length
@@ -17,7 +17,8 @@ pub fn split_into_chunks(text: &str, max_length: usize) -> Vec<String> {
                 current_chunk.push_str(word);
             } else {
                 // Push the current chunk and start a new one
-                current_chunk.push_str(&format!("<{index}/"));
+                current_chunk.push_str(&format!(" <{index}/"));
+                index += 1;
                 chunks.push(current_chunk.clone());
                 current_chunk = word.to_string(); // Start with the current word
             }
@@ -25,6 +26,7 @@ pub fn split_into_chunks(text: &str, max_length: usize) -> Vec<String> {
     
         // Don't forget to push the last chunk
         if !current_chunk.is_empty() {
+            current_chunk.push_str(&format!(" <{index}/"));
             chunks.push(current_chunk);
         }
     

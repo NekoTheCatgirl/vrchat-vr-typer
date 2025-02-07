@@ -1,9 +1,9 @@
 [package]
 name = "vrchat-vr-typer"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.23", features = ["derive"] }
+clap = { version = "4.5.28", features = ["derive"] }
 iced = "0.13.1"
 rosc = "0.10.1"
